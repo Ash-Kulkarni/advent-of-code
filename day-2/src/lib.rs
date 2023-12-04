@@ -1,6 +1,3 @@
-
-
-
 pub fn process_part_1(input: &str) -> i32 {
 
     const MAX_RED: i32 = 12;
