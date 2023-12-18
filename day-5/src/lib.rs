@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-pub fn process_part_1(input: &str) -> i32 {
+pub fn process_part_1(input: &str) -> u32 {
 
     let parts = input
         .split("\n\n")
@@ -9,7 +9,7 @@ pub fn process_part_1(input: &str) -> i32 {
     let seeds = parts[0]
         .split_whitespace()
         .skip(1)
-        .filter_map(|number| number.parse::<i32>().ok())
+        .filter_map(|number| number.parse::<u32>().ok())
         .collect::<Vec<_>>();
 
     let maps = parts[1..]
@@ -22,7 +22,7 @@ pub fn process_part_1(input: &str) -> i32 {
                 .map(|line| {
                     line
                         .split_whitespace()
-                        .filter_map(|number| number.parse::<i32>().ok())
+                        .filter_map(|number| number.parse::<u32>().ok())
                         .collect::<Vec<_>>()
                 })
                 .for_each(|numbers| {
