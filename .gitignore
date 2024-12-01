@@ -1,0 +1,4 @@
+build/
+SESSION.txt
+.null-ls*
+*test.gleam
