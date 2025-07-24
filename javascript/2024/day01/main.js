@@ -22,6 +22,7 @@ const part1 = () => {
   diffs.forEach((d) => {
     total += d;
   });
+  console.log({ total });
 };
 
 part1();
