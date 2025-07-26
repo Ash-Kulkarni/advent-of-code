@@ -1,6 +1,9 @@
 def get_map():
-    with open("input.txt") as f:
+    with open("mock.txt") as f:
         return [line.strip() for line in f.readlines()]
+
+
+class LoopException(Exception): ...
 
 
 class Simulation:
@@ -10,6 +13,7 @@ class Simulation:
         self.size_x = len(map[0])
         self.guard_dir = "N"
         self.guard_pos = self.get_starting_point()
+        self.seen = set()
 
     def get_starting_point(self):
         for i in range(self.size_y):
@@ -60,10 +64,17 @@ class Simulation:
         else:
             raise ValueError("unknown guard dir", self.guard_dir)
 
-    def move_guard_forward(self):
+    def record_guard_position(self):
+        if (self.guard_dir, tuple(self.guard_pos)) in self.seen:
+            raise LoopException
+        self.seen.add((self.guard_dir, tuple(self.guard_pos)))
+
         gy, gx = self.guard_pos
         r = self.map[gy]
         self.map[gy] = r[:gx] + "X" + r[gx + 1 :]
+
+    def move_guard_forward(self):
+        self.record_guard_position()
         if self.guard_dir == "N":
             self.guard_pos[0] -= 1
         elif self.guard_dir == "E":
@@ -75,11 +86,36 @@ class Simulation:
         else:
             raise ValueError("unknown guard dir", self.guard_dir)
 
-    def run(self):
+    def part_1(self):
         while not self.guard_leaving_map():
             self.step()
         print(sum([1 for r in self.map for c in r if c == "X"]) + 1)
 
+    def part_2(self):
+        self.part_1()
+
+        ijs = [ij for _, ij in self.seen]
+        ijs.append(self.guard_pos)
+        print(ijs)
+        loop_positions = 0
+
+        for i, j in ijs:
+            m = get_map()
+            if m[i][j] != ".":
+                continue
+            r = m[i]
+            r = r[:j] + "#" + r[j + 1 :]
+            m[i] = r
+            ss = Simulation(m)
+            while not ss.guard_leaving_map():
+                try:
+                    ss.step()
+                except LoopException:
+                    loop_positions += 1
+                    break
+        print(loop_positions)
+
 
 s = Simulation(get_map())
-s.run()
+# s.part_1()
+s.part_2()
