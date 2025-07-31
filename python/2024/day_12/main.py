@@ -1,91 +1,98 @@
-with open('test_input.txt') as f:
-
-    grid = [x.strip().split('\n')[0] for x in f.readlines()]
-
-for g in grid:
-    print(g)
-
-    
-y, x = 0, 0
+def get_input() -> list[str]:
+    with open("input.txt", "r") as file:
+        return file.read().strip().splitlines()
 
 
-
-def grid_size(grid):
-    return len(grid), len(grid[0])
-
-def in_grid(y, x, size_y, size_x):
-    if y < 0 or x < 0:
-        return False
-
-    if y >= size_y or x >= size_x:
-        return False
-
-    return True
+def parse_input(input_data: list[str]) -> dict[tuple[int, int], str]:
+    data = {}
+    for y, line in enumerate(input_data):
+        for x, char in enumerate(line):
+            data[(x, y)] = char
+    return data
 
 
-def go_east(y, x):
-    return y, x + 1
-
-def go_south(y, x):
-    return y+1, x
-def go_west(y, x):
-    return y, x - 1
-
-def go_north(y, x):
-    return y-1, x
-
-size = grid_size(grid)
-y_size, x_size = size
-def get_next_coords(y, x):
-    next_coords = [fn(y, x) for fn in [go_east, go_south, go_west, go_north]]
-    return [c for c in next_coords if in_grid(*c, y_size, x_size)]
+def neighbors(point: tuple[int, int]) -> list[tuple[int, int]]:
+    x, y = point
+    directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]
+    return [(x + dx, y + dy) for dx, dy in directions]
 
 
-seen = {}
-
-
-def get_all_coordinates(size):
-    all_coords = set()
-    y_size, x_size = size
-    for j in range(0, y_size):
-        for i in range(0, x_size):
-            all_coords.add((j, i))
-    return all_coords
-
-
-
-def subtract_coordinates(total, coords):
-    return total - coords
-
-def find_connected_component(char, component_num, coords):
-    # current_char = grid[y, x]
-    key = (char, component_num)
-    if (key) not in seen:
-        seen[key] = set()
-
-    for y, x in coords:
-        
-
-        if (y,x) in seen[key]:
+def get_regions(data: dict[tuple[int, int], str]) -> dict[str, set[tuple[int, int]]]:
+    all_points = set()
+    regions = []
+    for (x, y), char in data.items():
+        if (x, y) in all_points:
             continue
-        
-        this_char = grid[y][x]
-        if this_char == char:
-            seen[key].add((y,x))
-            find_connected_component(char, component_num, get_next_coords(y,x))
-            
+        region = set()
+        queue = [(x, y)]
+        while queue:
+            current = queue.pop()
+            if current in region:
+                continue
 
-    return seen[key]
+            region.add(current)
 
-remaining_coords = get_all_coordinates(size)
-component_num = 0
-while len(remaining_coords) != 0:
-    y, x = next(iter(remaining_coords))
-    start_char = grid[y][x]
-    found_coords = find_connected_component(start_char, component_num, [(y,x)])
-    remaining_coords = subtract_coordinates(remaining_coords, found_coords)
-    if not remaining_coords:
-        break
-    component_num +=1 
+            for n in neighbors(current):
+                if (n) in data and n not in region and data[n] == char:
+                    queue.append(n)
+        regions.append(region)
+        all_points |= region
+    return regions
 
-print(seen)
+
+def get_region_area(region: set[tuple[int, int]]) -> int:
+    return len(region)
+
+
+def get_region_perimeter(region: set[tuple[int, int]]) -> int:
+    perimeter = 0
+    for point in region:
+        for n in neighbors(point):
+            if n not in region:
+                perimeter += 1
+    return perimeter
+
+
+def get_region_number_of_sides(region: set[tuple[int, int]]) -> int:
+    # number of sides is equal to the number of corners
+    # 2 adjacent sides that don't match (normal corner)
+    # or 2 adjacent sides that match but diagonal that doesn't match (internal corner)
+    num_sides = 0
+    for x, y in region:
+        for dx, dy in [(-1, -1), (-1, 1), (1, -1), (1, 1)]:
+            neighbor_x = (x + dx, y)
+            neighbor_y = (x, y + dy)
+            neighbor_dia = (x + dx, y + dy)
+
+            if neighbor_x not in region and neighbor_y not in region:
+                num_sides += 1
+            if (
+                neighbor_x in region
+                and neighbor_y in region
+                and neighbor_dia not in region
+            ):
+                num_sides += 1
+    return num_sides
+
+
+def part_1():
+    print(
+        sum(
+            get_region_area(r) * get_region_perimeter(r)
+            for r in get_regions(parse_input(get_input()))
+        )
+    )
+
+
+def part_2():
+    print(
+        sum(
+            get_region_area(r) * get_region_number_of_sides(r)
+            for r in get_regions(parse_input(get_input()))
+        )
+    )
+
+
+part_1()
+
+part_2()
