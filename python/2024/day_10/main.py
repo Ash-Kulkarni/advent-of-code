@@ -76,5 +76,5 @@ def part_2():
     print(total_rating)
 
 
-# part_1()
+part_1()
 part_2()
