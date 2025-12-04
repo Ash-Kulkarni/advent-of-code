@@ -1,4 +1,7 @@
 build/
-SESSION.txt
+session.txt
 .null-ls*
 *test.gleam
+.direnv
+.venv
+.envrc
